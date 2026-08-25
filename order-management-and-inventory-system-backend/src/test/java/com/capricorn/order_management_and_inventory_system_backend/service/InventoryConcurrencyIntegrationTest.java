@@ -3,14 +3,18 @@ package com.capricorn.order_management_and_inventory_system_backend.service;
 import com.capricorn.order_management_and_inventory_system_backend.entity.Inventory;
 import com.capricorn.order_management_and_inventory_system_backend.entity.Product;
 import com.capricorn.order_management_and_inventory_system_backend.entity.Warehouse;
+import com.capricorn.order_management_and_inventory_system_backend.entity.Category;
 import com.capricorn.order_management_and_inventory_system_backend.repository.InventoryRepository;
 import com.capricorn.order_management_and_inventory_system_backend.repository.ProductRepository;
 import com.capricorn.order_management_and_inventory_system_backend.repository.WarehouseRepository;
+import com.capricorn.order_management_and_inventory_system_backend.repository.CategoryRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import com.capricorn.order_management_and_inventory_system_backend.TestcontainersConfiguration;
 
 import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
@@ -21,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Import(TestcontainersConfiguration.class)
 @SpringBootTest
 public class InventoryConcurrencyIntegrationTest {
 
@@ -34,6 +39,9 @@ public class InventoryConcurrencyIntegrationTest {
     private ProductRepository productRepository;
 
     @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private WarehouseRepository warehouseRepository;
 
     private Long productId;
@@ -41,11 +49,18 @@ public class InventoryConcurrencyIntegrationTest {
 
     @BeforeEach
     void setup() {
+        Category category = Category.builder()
+                .name("Concurrency Category")
+                .description("Test Category")
+                .build();
+        category = categoryRepository.save(category);
+
         Product product = Product.builder()
                 .sku("TEST-CONCURRENCY-SKU")
                 .name("Concurrency Product")
                 .price(new BigDecimal("100.00"))
                 .status("ACTIVE")
+                .category(category)
                 .build();
         product = productRepository.save(product);
         productId = product.getId();
@@ -71,6 +86,7 @@ public class InventoryConcurrencyIntegrationTest {
         inventoryRepository.deleteAll();
         warehouseRepository.deleteAll();
         productRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @Test
