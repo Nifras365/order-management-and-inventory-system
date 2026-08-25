@@ -35,6 +35,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final InventoryService inventoryService;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final OutboxService outboxService;
 
     private User getCurrentUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -85,7 +86,10 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         recordStatusHistory(savedOrder, OrderStatus.PENDING);
 
-        return OrderResponse.fromEntity(savedOrder);
+        OrderResponse response = OrderResponse.fromEntity(savedOrder);
+        outboxService.saveEvent("ORDER", savedOrder.getId().toString(), "ORDER_CREATED", response);
+
+        return response;
     }
 
     @Transactional
@@ -117,7 +121,10 @@ public class OrderService {
             );
         }
 
-        return OrderResponse.fromEntity(savedOrder);
+        OrderResponse response = OrderResponse.fromEntity(savedOrder);
+        outboxService.saveEvent("ORDER", savedOrder.getId().toString(), "ORDER_CANCELLED", response);
+
+        return response;
     }
 
     public List<OrderResponse> getOrders() {
@@ -161,6 +168,8 @@ public class OrderService {
         order.setPaymentStatus(PaymentStatus.COMPLETED);
         Order savedOrder = orderRepository.save(order);
         recordStatusHistory(savedOrder, OrderStatus.CONFIRMED);
+
+        outboxService.saveEvent("ORDER", savedOrder.getId().toString(), "ORDER_CONFIRMED", OrderResponse.fromEntity(savedOrder));
     }
 
     @Transactional
@@ -185,5 +194,7 @@ public class OrderService {
                     item.getQuantity()
             );
         }
+        
+        outboxService.saveEvent("ORDER", savedOrder.getId().toString(), "ORDER_CANCELLED", OrderResponse.fromEntity(savedOrder));
     }
 }
