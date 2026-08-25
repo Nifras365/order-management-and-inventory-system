@@ -20,23 +20,23 @@ The system is designed around a monolithic core that leverages asynchronous proc
 
 ```mermaid
 graph TD
-    Client[Client (Web/Mobile)] --> API[Spring Boot REST API]
-    API --> Auth[Auth Service (JWT)]
-    API --> Product[Product Service]
-    API --> Order[Order Service]
-    API --> Inventory[Inventory Service]
-    API --> Payment[Mock Payment Service]
+    Client["Client (Web/Mobile)"] --> API["Spring Boot REST API"]
+    API --> Auth["Auth Service (JWT)"]
+    API --> Product["Product Service"]
+    API --> Order["Order Service"]
+    API --> Inventory["Inventory Service"]
+    API --> Payment["Mock Payment Service"]
 
-    Product --> Redis[(Redis Cache)]
-    Order --> DB[(PostgreSQL)]
+    Product --> Redis[("Redis Cache")]
+    Order --> DB[("PostgreSQL")]
     Inventory --> DB
     Payment --> DB
 
-    Order --> Outbox[Outbox Table]
-    Outbox --> Poller[Kafka Message Publisher]
-    Poller --> Kafka[Kafka Topic: order-events]
-    Kafka --> Consumer[Kafka Message Consumer]
-    Consumer --> Notification[Mock Notification Service]
+    Order --> Outbox["Outbox Table"]
+    Outbox --> Poller["Kafka Message Publisher"]
+    Poller --> Kafka["Kafka Topic: order-events"]
+    Kafka --> Consumer["Kafka Message Consumer"]
+    Consumer --> Notification["Mock Notification Service"]
 ```
 
 ### 2. Database Entity Relationship Diagram (ERD)
