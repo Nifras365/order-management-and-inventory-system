@@ -45,9 +45,8 @@ public class PaymentService {
         Payment payment = Payment.builder()
                 .order(order)
                 .amount(request.getAmount())
-                .paymentMethod(request.getPaymentMethod())
-                .transactionId(UUID.randomUUID().toString())
-                .paymentStatus(isSuccess ? PaymentStatus.COMPLETED : PaymentStatus.FAILED)
+                .idempotencyKey(UUID.randomUUID().toString())
+                .status(isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED)
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);

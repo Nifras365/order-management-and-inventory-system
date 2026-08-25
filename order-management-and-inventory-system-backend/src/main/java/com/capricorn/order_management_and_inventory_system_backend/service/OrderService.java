@@ -165,7 +165,7 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.CONFIRMED);
-        order.setPaymentStatus(PaymentStatus.COMPLETED);
+        order.setPaymentStatus(PaymentStatus.SUCCESS);
         Order savedOrder = orderRepository.save(order);
         recordStatusHistory(savedOrder, OrderStatus.CONFIRMED);
 

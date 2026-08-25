@@ -17,7 +17,6 @@ public class PaymentResponse {
     private Long id;
     private Long orderId;
     private BigDecimal amount;
-    private String paymentMethod;
     private String paymentStatus;
     private String transactionId;
     private LocalDateTime createdAt;
@@ -27,9 +26,8 @@ public class PaymentResponse {
                 .id(payment.getId())
                 .orderId(payment.getOrder().getId())
                 .amount(payment.getAmount())
-                .paymentMethod(payment.getPaymentMethod())
-                .paymentStatus(payment.getPaymentStatus().name())
-                .transactionId(payment.getTransactionId())
+                .paymentStatus(payment.getStatus().name())
+                .transactionId(payment.getIdempotencyKey())
                 .createdAt(payment.getCreatedAt())
                 .build();
     }

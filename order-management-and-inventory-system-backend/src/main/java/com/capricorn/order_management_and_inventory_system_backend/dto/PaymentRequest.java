@@ -19,7 +19,4 @@ public class PaymentRequest {
 
     @NotNull
     private BigDecimal amount;
-
-    @NotBlank
-    private String paymentMethod; // e.g., "CREDIT_CARD", "PAYPAL"
 }

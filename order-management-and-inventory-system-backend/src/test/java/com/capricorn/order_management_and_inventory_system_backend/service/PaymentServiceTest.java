@@ -45,7 +45,7 @@ class PaymentServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
 
-        PaymentRequest request = new PaymentRequest(orderId, amount, "CREDIT_CARD");
+        PaymentRequest request = new PaymentRequest(orderId, amount);
 
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
             Payment saved = invocation.getArgument(0);
