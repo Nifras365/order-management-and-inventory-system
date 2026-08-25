@@ -147,4 +147,43 @@ public class OrderService {
                 .build();
         orderStatusHistoryRepository.save(history);
     }
+
+    @Transactional
+    public void processSuccessfulPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.PAYMENT_PENDING) {
+            throw new IllegalStateException("Payment cannot be processed for order in status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CONFIRMED);
+        order.setPaymentStatus(PaymentStatus.COMPLETED);
+        Order savedOrder = orderRepository.save(order);
+        recordStatusHistory(savedOrder, OrderStatus.CONFIRMED);
+    }
+
+    @Transactional
+    public void processFailedPayment(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.PAYMENT_PENDING) {
+            throw new IllegalStateException("Payment failure cannot be recorded for order in status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setPaymentStatus(PaymentStatus.FAILED);
+        Order savedOrder = orderRepository.save(order);
+        recordStatusHistory(savedOrder, OrderStatus.CANCELLED);
+
+        // Release inventory since the order is cancelled due to payment failure
+        for (OrderItem item : savedOrder.getOrderItems()) {
+            inventoryService.releaseInventoryAtomic(
+                    item.getProduct().getId(),
+                    item.getWarehouseId(),
+                    item.getQuantity()
+            );
+        }
+    }
 }
