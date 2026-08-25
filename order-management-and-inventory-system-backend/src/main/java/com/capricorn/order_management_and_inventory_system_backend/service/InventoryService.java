@@ -72,4 +72,13 @@ public class InventoryService {
         int updatedRows = inventoryRepository.reserveInventoryAtomic(productId, warehouseId, quantity);
         return updatedRows > 0;
     }
+
+    @Transactional
+    public boolean releaseInventoryAtomic(Long productId, Long warehouseId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Release quantity must be strictly greater than 0");
+        }
+        int updatedRows = inventoryRepository.releaseInventoryAtomic(productId, warehouseId, quantity);
+        return updatedRows > 0;
+    }
 }

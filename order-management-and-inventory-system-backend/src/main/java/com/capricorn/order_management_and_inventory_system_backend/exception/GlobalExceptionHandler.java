@@ -47,6 +47,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(com.capricorn.order_management_and_inventory_system_backend.exception.InsufficientInventoryException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientInventoryException(com.capricorn.order_management_and_inventory_system_backend.exception.InsufficientInventoryException ex) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(Instant.now().toString())
+                .status(HttpStatus.CONFLICT.value())
+                .code("INSUFFICIENT_INVENTORY")
+                .message(ex.getMessage())
+                .traceId(UUID.randomUUID().toString())
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
         ErrorResponse errorResponse = ErrorResponse.builder()

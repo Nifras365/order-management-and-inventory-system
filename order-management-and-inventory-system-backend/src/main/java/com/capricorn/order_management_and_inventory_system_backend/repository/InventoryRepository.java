@@ -23,4 +23,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Modifying
     @Query("UPDATE Inventory i SET i.availableQuantity = i.availableQuantity - :quantity, i.reservedQuantity = i.reservedQuantity + :quantity WHERE i.product.id = :productId AND i.warehouse.id = :warehouseId AND i.availableQuantity >= :quantity AND :quantity > 0")
     int reserveInventoryAtomic(@Param("productId") Long productId, @Param("warehouseId") Long warehouseId, @Param("quantity") int quantity);
+
+    @Modifying
+    @Query("UPDATE Inventory i SET i.availableQuantity = i.availableQuantity + :quantity, i.reservedQuantity = i.reservedQuantity - :quantity WHERE i.product.id = :productId AND i.warehouse.id = :warehouseId AND i.reservedQuantity >= :quantity AND :quantity > 0")
+    int releaseInventoryAtomic(@Param("productId") Long productId, @Param("warehouseId") Long warehouseId, @Param("quantity") int quantity);
 }
