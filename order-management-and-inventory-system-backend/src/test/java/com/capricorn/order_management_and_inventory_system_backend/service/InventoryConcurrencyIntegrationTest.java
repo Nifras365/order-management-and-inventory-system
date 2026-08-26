@@ -13,8 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
-import com.capricorn.order_management_and_inventory_system_backend.TestcontainersConfiguration;
+
 
 import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
@@ -25,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Import(TestcontainersConfiguration.class)
+
 @SpringBootTest
 public class InventoryConcurrencyIntegrationTest {
 
