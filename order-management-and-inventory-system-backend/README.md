@@ -1,6 +1,6 @@
 # Order Management & Inventory System
 
-A robust, highly concurrent, and scalable backend system for managing e-commerce orders, product inventory, shopping carts, and payments. Built with cutting-edge **Java 21**, **Spring Boot 4.1.1** (Spring Security 7+), **PostgreSQL**, **Redis**, and **Kafka**.
+A robust, highly concurrent, and scalable backend system for managing e-commerce orders, product inventory, shopping carts, and payments. Built with cutting-edge **Java 21**, **Spring Boot 3.4.2**, **PostgreSQL**, **Redis**, and **Kafka**.
 
 ## 🚀 Features
 
@@ -160,10 +160,17 @@ Once the application is running, the Swagger UI is automatically generated and a
 
 ---
 
+### 4. Default Test Accounts
+The application includes a `DataSeeder` that automatically creates default elevated users on startup if they don't exist:
+- **Admin**: Username: `admin` | Password: `admin123`
+- **Warehouse Manager**: Username: `manager` | Password: `manager123`
+
+---
+
 ## 🧪 Testing
 
 This project includes a comprehensive test suite.
-To run the tests (which automatically utilizes Testcontainers to spin up isolated DB/Kafka instances):
+**Important:** Tests are configured to run against your local Docker containers (Testcontainers was removed for faster execution). Ensure `docker compose up -d` is running before testing!
 
 ```bash
 mvn test
