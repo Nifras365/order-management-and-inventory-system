@@ -18,8 +18,10 @@ public class PaymentController {
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<PaymentResponse> processPayment(@Valid @RequestBody PaymentRequest request) {
-        return ResponseEntity.ok(paymentService.processPayment(request));
+    public ResponseEntity<PaymentResponse> processPayment(
+            @RequestHeader(value = "Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody PaymentRequest request) {
+        return ResponseEntity.ok(paymentService.processPayment(idempotencyKey, request));
     }
 
     @GetMapping("/order/{orderId}")

@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -27,36 +28,58 @@ public class PaymentService {
     private final Random random = new Random();
 
     @Transactional
-    public PaymentResponse processPayment(PaymentRequest request) {
+    public PaymentResponse processPayment(String idempotencyKey, PaymentRequest request) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException("Idempotency-Key header is required");
+        }
+
+        // 1. Idempotency Check
+        Optional<Payment> existingPayment = paymentRepository.findByIdempotencyKey(idempotencyKey);
+        if (existingPayment.isPresent()) {
+            log.info("Idempotent request detected for key {}. Returning existing payment.", idempotencyKey);
+            return PaymentResponse.fromEntity(existingPayment.get());
+        }
+
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (paymentRepository.findByOrderId(order.getId()).isPresent()) {
-            throw new IllegalArgumentException("A payment attempt has already been made for this order");
+            throw new IllegalArgumentException("A payment attempt has already been made for this order with a different idempotency key");
         }
 
         if (order.getTotalAmount().compareTo(request.getAmount()) != 0) {
             throw new IllegalArgumentException("Payment amount does not match the order total amount");
         }
 
-        // Mock payment processing logic with a ~10% failure rate
-        boolean isSuccess = random.nextInt(100) >= 10;
+        // Mock payment processing logic: 85% SUCCESS, 10% FAILED, 5% TIMEOUT
+        int randomValue = random.nextInt(100);
+        PaymentStatus status;
+        if (randomValue < 10) {
+            status = PaymentStatus.FAILED;
+        } else if (randomValue < 15) {
+            status = PaymentStatus.TIMEOUT;
+        } else {
+            status = PaymentStatus.SUCCESS;
+        }
         
         Payment payment = Payment.builder()
                 .order(order)
                 .amount(request.getAmount())
-                .idempotencyKey(UUID.randomUUID().toString())
-                .status(isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED)
+                .idempotencyKey(idempotencyKey)
+                .status(status)
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
 
-        if (isSuccess) {
+        if (status == PaymentStatus.SUCCESS) {
             log.info("Payment successful for order {}", order.getId());
             orderService.processSuccessfulPayment(order.getId());
-        } else {
+        } else if (status == PaymentStatus.FAILED) {
             log.warn("Payment failed for order {}", order.getId());
             orderService.processFailedPayment(order.getId());
+        } else {
+            log.warn("Payment timed out for order {}", order.getId());
+            // In a real system, TIMEOUT might require a manual sync/reconciliation later
         }
 
         return PaymentResponse.fromEntity(savedPayment);

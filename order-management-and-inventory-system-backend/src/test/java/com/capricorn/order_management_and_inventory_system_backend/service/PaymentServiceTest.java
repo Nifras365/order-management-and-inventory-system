@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,10 +39,12 @@ class PaymentServiceTest {
     @Test
     void testProcessPayment_SuccessOrFailure() {
         // Arrange
+        String idempotencyKey = UUID.randomUUID().toString();
         Long orderId = 100L;
         BigDecimal amount = new BigDecimal("99.99");
 
         Order order = Order.builder().id(orderId).totalAmount(amount).build();
+        when(paymentRepository.findByIdempotencyKey(idempotencyKey)).thenReturn(Optional.empty());
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
 
@@ -54,7 +57,7 @@ class PaymentServiceTest {
         });
 
         // Act
-        PaymentResponse response = paymentService.processPayment(request);
+        PaymentResponse response = paymentService.processPayment(idempotencyKey, request);
 
         // Assert
         assertNotNull(response);
